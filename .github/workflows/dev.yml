@@ -32,5 +32,15 @@ jobs:
             echo "${{ secrets.APP_ENV_FILE }}" > .env
             docker compose down
             docker compose up -d --build
+            # docker ps -a
+
+            # echo "=== docker compose ps ==="
+            # docker compose ps
+
+            # # If any container exited, grab its last 50 lines of logs:
+            # for c in $(docker ps -aq --filter "status=exited"); do
+            #   echo "=== logs for $c ==="
+            #   docker logs --tail 50 $c
+            # done
           EOF
       
