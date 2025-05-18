@@ -1,0 +1,34 @@
+name: GCP Docker Deployment
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set Environment Variables
+        run: |
+            echo "VM_IP=${{ secrets.DEV_VM_IP }}" >> $GITHUB_ENV
+          
+
+      - name: Add SSH Key
+        run: |
+          echo "${{ secrets.GCP_SSH_KEY }}" > key.pem
+          chmod 600 key.pem
+
+      - name: Deploy to VM via SSH
+        run: |
+          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.VM_SSH_USER }}@$VM_IP << 'EOF'
+            cd /home/${{ secrets.VM_SSH_USER }}/app || git clone https://github.com/Manish-auriga/backend.git app && cd app
+            git fetch --all
+            git checkout ${{ github.ref_name }}
+            git pull origin ${{ github.ref_name }}
+            docker compose down
+            docker compose up -d --build
+          EOF
