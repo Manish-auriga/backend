@@ -21,6 +21,8 @@ jobs:
         run: |
           echo "${{ secrets.GCP_SSH_KEY }}" > key.pem
           chmod 600 key.pem
+          echo "${{ secrets.PRIVATE_SSH_KEY }}" > keyprivate.pem
+          chmod 600 keyprivate.pem
 
       - name: Deploy to Private VM via Public VM
         run: |
@@ -28,7 +30,7 @@ jobs:
             echo "${{ secrets.GCP_SSH_KEY }}" > key.pem
             chmod 600 key.pem
 
-            ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.VM_SSH_USER }}@$PRIVATE_IP '
+            ssh -o StrictHostKeyChecking=no -i keyprivate.pem ${{ secrets.VM_SSH_USER }}@$PRIVATE_IP '
               cd /home/${{ secrets.VM_SSH_USER }}/app || git clone https://github.com/Manish-auriga/backend.git app && cd app
               git fetch --all
               git checkout ${{ github.ref_name }}
@@ -38,3 +40,4 @@ jobs:
               docker compose up -d --build
             '
           EOF
+
