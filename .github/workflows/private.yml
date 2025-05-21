@@ -26,18 +26,22 @@ jobs:
 
       - name: Deploy to Private VM via Public VM
         run: |
-          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.VM_SSH_USER }}@$VM_IP << EOF
-            echo "${{ secrets.GCP_SSH_KEY }}" > key.pem
-            chmod 600 key.pem
+          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.VM_SSH_USER }}@$VM_IP << 'EOF'
+            echo "${{ secrets.PRIVATE_SSH_KEY }}" > keyprivate.pem
+            chmod 600 keyprivate.pem
 
-            ssh -o StrictHostKeyChecking=no -i keyprivate.pem ${{ secrets.VM_SSH_USER }}@$PRIVATE_IP '
-              cd /home/${{ secrets.VM_SSH_USER }}/app || git clone https://github.com/Manish-auriga/backend.git app && cd app
+            ssh -o StrictHostKeyChecking=no -i keyprivate.pem ${{ secrets.VM_SSH_USER }}@$PRIVATE_IP << 'INNER_EOF'
+              set -e
+              if [ ! -d "/home/${{ secrets.VM_SSH_USER }}/app" ]; then
+                git clone https://github.com/Manish-auriga/backend.git /home/${{ secrets.VM_SSH_USER }}/app
+              fi
+              cd /home/${{ secrets.VM_SSH_USER }}/app
               git fetch --all
               git checkout ${{ github.ref_name }}
               git pull origin ${{ github.ref_name }}
               echo "${{ secrets.APP_ENV_FILE }}" > .env
-              sudo docker compose down
+              sudo docker compose down || true
               sudo docker compose up -d --build
-            '
+            INNER_EOF
           EOF
 
