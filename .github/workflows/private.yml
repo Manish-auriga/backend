@@ -14,35 +14,27 @@ jobs:
 
       - name: Set Environment Variables
         run: |
-            echo "VM_IP=${{ secrets.DEV_VM_IP }}" >> $GITHUB_ENV
-            echo "PRIVATE_IP=${{ secrets.PRIVATE_VM_IP }}" >> $GITHUB_ENV
+          echo "VM_IP=${{ secrets.DEV_VM_IP }}" >> $GITHUB_ENV
+          echo "PRIVATE_IP=${{ secrets.PRIVATE_VM_IP }}" >> $GITHUB_ENV
 
       - name: Add SSH Key
         run: |
           echo "${{ secrets.GCP_SSH_KEY }}" > key.pem
           chmod 600 key.pem
 
-      - name: Deploy to VM via SSH
+      - name: Deploy to Private VM via Public VM
         run: |
-            ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.VM_SSH_USER }}@$VM_IP << 'EOF'
-            ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.VM_SSH_USER }}@$PRIVATE_IP << 'INNER_EOF'
+          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.VM_SSH_USER }}@$VM_IP << EOF
+            echo "${{ secrets.GCP_SSH_KEY }}" > key.pem
+            chmod 600 key.pem
 
-            cd /home/${{ secrets.VM_SSH_USER }}/app || git clone https://github.com/Manish-auriga/backend.git app && cd app
-            git fetch --all
-            git checkout ${{ github.ref_name }}
-            git pull origin ${{ github.ref_name }}
-            echo "${{ secrets.APP_ENV_FILE }}" > .env
-            docker compose down
-            docker compose up -d --build
-            # docker ps -a
-
-            # echo "=== docker compose ps ==="
-            # docker compose ps
-
-            # # If any container exited, grab its last 50 lines of logs:
-            # for c in $(docker ps -aq --filter "status=exited"); do
-            #   echo "=== logs for $c ==="
-            #   docker logs --tail 50 $c
-            # done
+            ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.VM_SSH_USER }}@$PRIVATE_IP '
+              cd /home/${{ secrets.VM_SSH_USER }}/app || git clone https://github.com/Manish-auriga/backend.git app && cd app
+              git fetch --all
+              git checkout ${{ github.ref_name }}
+              git pull origin ${{ github.ref_name }}
+              echo "${{ secrets.APP_ENV_FILE }}" > .env
+              docker compose down
+              docker compose up -d --build
+            '
           EOF
-      
