@@ -3,3 +3,7 @@ hello2
 hello3
 hello4
 final test
+
+
+ssh -i ~/.ssh/id_rsa manish_sharma@34.169.87.5
+ssh manish_sharma@192.168.0.5
