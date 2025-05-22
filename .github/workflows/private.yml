@@ -36,17 +36,18 @@ jobs:
             REF_NAME=${{ github.ref_name }}
             APP_ENV_FILE="${{ secrets.APP_ENV_FILE }}"
 
-            ssh -o StrictHostKeyChecking=no -i ~/keyprivate.pem $SSH_USER@$PRIVATE_IP "
-              set -e
-              if [ ! -d /home/$SSH_USER/app ]; then
-                git clone https://github.com/Manish-auriga/backend.git /home/$SSH_USER/app
-              fi
-              cd /home/$SSH_USER/app
-              git fetch --all
-              git checkout $REF_NAME
-              git pull origin $REF_NAME
-              echo \"$APP_ENV_FILE\" > .env
-              sudo docker compose down || true
-              sudo docker compose up -d --build
+             ssh -o $SSH_USER@$PRIVATE_IP 
+            # "
+            #   set -e
+            #   if [ ! -d /home/$SSH_USER/app ]; then
+            #     git clone https://github.com/Manish-auriga/backend.git /home/$SSH_USER/app
+            #   fi
+            #   cd /home/$SSH_USER/app
+            #   git fetch --all
+            #   git checkout $REF_NAME
+            #   git pull origin $REF_NAME
+            #   echo \"$APP_ENV_FILE\" > .env
+            #   sudo docker compose down || true
+            #   sudo docker compose up -d --build
             "
           '
