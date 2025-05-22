@@ -35,7 +35,7 @@ jobs:
             # chmod 600 ~/private_vm_key.pem
 
             # SSH into Private VM
-            ssh $PRIVATE_VM_SSH_USER@$PRIVATE_VM_IP << 'INNER_EOF'
+            ssh $PRIVATE_VM_SSH_USER@$PRIVATE_VM_IP  bash -s <<'INNER_EOF'
               set -e
               if [ ! -d ~/app ]; then
                 git clone https://github.com/Manish-auriga/backend.git ~/app
