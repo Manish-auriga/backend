@@ -14,40 +14,38 @@ jobs:
 
       - name: Set Environment Variables
         run: |
-          echo "VM_IP=${{ secrets.DEV_VM_IP }}" >> $GITHUB_ENV
-          echo "PRIVATE_IP=${{ secrets.PRIVATE_VM_IP }}" >> $GITHUB_ENV
+          echo "PUBLIC_VM_IP=${{ secrets.DEV_VM_IP }}" >> $GITHUB_ENV
+          # echo "PRIVATE_VM_IP=${{ secrets.PRIVATE_VM_IP }}" >> $GITHUB_ENV
+          echo "PUBLIC_VM_SSH_USER=${{ secrets.VM_SSH_USER }}" >> $GITHUB_ENV
+          echo "PRIVATE_VM_SSH_USER=${{ secrets.VM_SSH_USER }}" >> $GITHUB_ENV
 
-      - name: Add SSH Key
+      - name: Add SSH Keys
         run: |
-          echo "${{ secrets.GCP_SSH_KEY }}" > key.pem
-          chmod 600 key.pem
-          echo "${{ secrets.PRIVATE_SSH_KEY }}" > keyprivate.pem
-          chmod 600 keyprivate.pem
+          mkdir -p ~/.ssh
+          echo "${{ secrets.GCP_SSH_KEY }}" > ~/.ssh/public_vm_key.pem
+          chmod 600 ~/.ssh/public_vm_key.pem
+          # echo "${{ secrets.PRIVATE_VM_SSH_KEY }}" > ~/.ssh/private_vm_key.pem
+          # chmod 600 ~/.ssh/private_vm_key.pem
 
-      - name: Deploy to Private VM via Public VM
+      - name: SSH into Public VM and Deploy to Private VM
         run: |
-          # SSH into public VM
-          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.VM_SSH_USER }}@${{ secrets.DEV_VM_IP }} '
-            echo "${{ secrets.PRIVATE_SSH_KEY }}" > ~/keyprivate.pem
-            chmod 600 ~/keyprivate.pem
+          ssh -i ~/.ssh/public_vm_key.pem -o StrictHostKeyChecking=no $PUBLIC_VM_SSH_USER@$PUBLIC_VM_IP << 'EOF'
+            # Add private VM's SSH key
+            # echo "${{ secrets.PRIVATE_VM_SSH_KEY }}" > ~/private_vm_key.pem
+            # chmod 600 ~/private_vm_key.pem
 
-            PRIVATE_IP=${{ secrets.PRIVATE_VM_IP }}
-            SSH_USER=${{ secrets.VM_SSH_USER }}
-            REF_NAME=${{ github.ref_name }}
-            APP_ENV_FILE="${{ secrets.APP_ENV_FILE }}"
-
-             ssh -o $SSH_USER@$PRIVATE_IP 
-            # "
-            #   set -e
-            #   if [ ! -d /home/$SSH_USER/app ]; then
-            #     git clone https://github.com/Manish-auriga/backend.git /home/$SSH_USER/app
-            #   fi
-            #   cd /home/$SSH_USER/app
-            #   git fetch --all
-            #   git checkout $REF_NAME
-            #   git pull origin $REF_NAME
-            #   echo \"$APP_ENV_FILE\" > .env
-            #   sudo docker compose down || true
-            #   sudo docker compose up -d --build
-            "
-          '
+            # SSH into Private VM
+            ssh $PRIVATE_VM_SSH_USER@$PRIVATE_VM_IP << 'INNER_EOF'
+              set -e
+              if [ ! -d ~/app ]; then
+                git clone https://github.com/Manish-auriga/backend.git ~/app
+              fi
+              cd ~/app
+              git fetch --all
+              git checkout ${{ github.ref_name }}
+              git pull origin ${{ github.ref_name }}
+              echo "${{ secrets.APP_ENV_FILE }}" > .env
+              sudo docker compose down || true
+              sudo docker compose up -d --build
+            INNER_EOF
+          EOF
