@@ -37,6 +37,5 @@ jobs:
               echo "${{ secrets.APP_ENV_FILE }}" > .env
               docker compose down || true
               docker compose up -d --build
-            EOL
-          EOF
+        
       
