@@ -5,6 +5,7 @@ on:
     branches:
       - private
 
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
