@@ -24,19 +24,18 @@ jobs:
 
       - name: Deploy to VM via SSH
         run: |
-          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.VM_SSH_USER }}@$VM_IP \
-          "ssh ${{ secrets.VM_SSH_USER }}@${{ secrets.PRIVATE_VM_IP }}  'bash -c \"\
-            cd /home/${{ secrets.VM_SSH_USER }} && \
-            if [ ! -d app ]; then \
-              git clone https://github.com/Manish-auriga/backend.git app; \
-            fi && \
-            cd app && \
-            git fetch --all && \
-            git checkout ${{ github.ref_name }} && \
-            git pull origin ${{ github.ref_name }} && \
-            echo \\\"${{ secrets.APP_ENV_FILE }}\\\" > .env && \
-            docker compose down || true && \
-            docker compose up -d --build \
-          \"'"
-
-          
+          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.VM_SSH_USER }}@$VM_IP << 'EOF'
+          ssh ${{ secrets.VM_SSH_USER }}@${{ secrets.PRIVATE_VM_IP }}  << 'INNER'
+            if [ ! -d "/home/${{ secrets.VM_SSH_USER }}/app" ]; then
+                git clone https://github.com/Manish-auriga/backend.git /home/${{ secrets.VM_SSH_USER }}/app
+              fi
+              cd /home/${{ secrets.VM_SSH_USER }}/app
+              git fetch --all
+              git checkout ${{ github.ref_name }}
+              git pull origin ${{ github.ref_name }}
+              echo "${{ secrets.APP_ENV_FILE }}" > .env
+              docker compose down || true
+              docker compose up -d --build
+            INNER
+          EOF
+      
