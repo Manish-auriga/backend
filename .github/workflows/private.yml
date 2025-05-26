@@ -26,9 +26,9 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.VM_SSH_USER }}@$VM_IP << 'EOF'
           ssh ${{ secrets.VM_SSH_USER }}@${{ secrets.PRIVATE_VM_IP }}  << 'INNER'
-            if [ ! -d "/home/${{ secrets.VM_SSH_USER }}/app" ]; then
-                git clone https://github.com/Manish-auriga/backend.git /home/${{ secrets.VM_SSH_USER }}/app
-              fi
+          cd /home/${{ secrets.VM_SSH_USER }}/app || git clone https://github.com/Manish-auriga/backend.git app && cd app
+          echo "hostname -I"
+          hostname -I        
               cd /home/${{ secrets.VM_SSH_USER }}/app
               git fetch --all
               git checkout ${{ github.ref_name }}
