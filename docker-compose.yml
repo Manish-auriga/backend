@@ -1,6 +1,6 @@
 services:
   backend:
-    build: .
+    image: manish22072004/backendprivate:1
     network_mode: host
     container_name: backend
     env_file:
