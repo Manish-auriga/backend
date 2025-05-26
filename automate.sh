@@ -20,4 +20,4 @@ sudo docker rmi $NAME/backendprivate:$TIMESTAMP
 sed -i "s|image: $NAME/backendprivate:.*|image: $NAME/backendprivate:$TIMESTAMP|" docker-compose.yml
 
 sudo docker compose down 
-sudo docker compose up -d
+sudo docker compose up -d 
