@@ -27,9 +27,8 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.VM_SSH_USER }}@$VM_IP << 'EOF'
           ssh ${{ secrets.VM_SSH_USER }}@${{ secrets.PRIVATE_VM_IP }}  << 'INNER'
           cd /home/${{ secrets.VM_SSH_USER }}/app || git clone https://github.com/Manish-auriga/backend.git
-          echo "hostname -I"
-          hostname -I        
-              cd /home/${{ secrets.VM_SSH_USER }}/app
+              echo "hostname -I"
+              hostname -I        
               git fetch --all
               git checkout ${{ github.ref_name }}
               git pull origin ${{ github.ref_name }}
