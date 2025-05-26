@@ -24,9 +24,10 @@ jobs:
 
       - name: Deploy to VM via SSH
         run: |
-          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.VM_SSH_USER }}@$VM_IP 
-          ssh ${{ secrets.VM_SSH_USER }}@${{ secrets.PRIVATE_VM_IP }}  
-          cd /home/${{ secrets.VM_SSH_USER }}/app || git clone https://github.com/Manish-auriga/backend.git
+          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.VM_SSH_USER }}@$VM_IP << 'EOF'
+          ssh ${{ secrets.VM_SSH_USER }}@${{ secrets.PRIVATE_VM_IP }}  << 'INNER'
+          cd /home/${{ secrets.VM_SSH_USER }}/app 
+          pwd
               echo "hostname -I"
               hostname -I        
               git fetch --all
@@ -35,6 +36,6 @@ jobs:
               echo "${{ secrets.APP_ENV_FILE }}" > .env
               docker compose down || true
               docker compose up -d --build
-          
-          
+            INNER
+          EOF
       
