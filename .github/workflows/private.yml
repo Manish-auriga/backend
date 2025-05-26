@@ -25,7 +25,7 @@ jobs:
       - name: Deploy to VM via SSH
         run: |
           ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.VM_SSH_USER }}@$VM_IP << 'EOF'
-          ssh ${{ secrets.VM_SSH_USER }}@${{ secrets.PRIVATE_VM_IP }}  << 'INNER'
+          ssh ${{ secrets.VM_SSH_USER }}@${{ secrets.PRIVATE_VM_IP }}  << 'EOL'
               cd /home/${{ secrets.VM_SSH_USER }}/app/backend 
               pwd
               echo "hostname -I"
@@ -37,6 +37,6 @@ jobs:
               echo "${{ secrets.APP_ENV_FILE }}" > .env
               docker compose down || true
               docker compose up -d --build
-            INNER
+            EOL
           EOF
       
