@@ -14,38 +14,25 @@ jobs:
 
       - name: Set Environment Variables
         run: |
-          echo "PUBLIC_VM_IP=${{ secrets.DEV_VM_IP }}" >> $GITHUB_ENV
-          # echo "PRIVATE_VM_IP=${{ secrets.PRIVATE_VM_IP }}" >> $GITHUB_ENV
-          echo "PUBLIC_VM_SSH_USER=${{ secrets.VM_SSH_USER }}" >> $GITHUB_ENV
-          echo "PRIVATE_VM_SSH_USER=${{ secrets.VM_SSH_USER }}" >> $GITHUB_ENV
+            echo "VM_IP=${{ secrets.DEV_VM_IP }}" >> $GITHUB_ENV
+          
 
-      - name: Add SSH Keys
+      - name: Add SSH Key
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.GCP_SSH_KEY }}" > ~/.ssh/public_vm_key.pem
-          chmod 600 ~/.ssh/public_vm_key.pem
-          # echo "${{ secrets.PRIVATE_VM_SSH_KEY }}" > ~/.ssh/private_vm_key.pem
-          # chmod 600 ~/.ssh/private_vm_key.pem
+          echo "${{ secrets.GCP_SSH_KEY }}" > key.pem
+          chmod 600 key.pem
 
-      - name: SSH into Public VM and Deploy to Private VM
+      - name: Deploy to VM via SSH
         run: |
-          ssh -i ~/.ssh/public_vm_key.pem -o StrictHostKeyChecking=no $PUBLIC_VM_SSH_USER@$PUBLIC_VM_IP << 'EOF'
-            # Add private VM's SSH key
-            # echo "${{ secrets.PRIVATE_VM_SSH_KEY }}" > ~/private_vm_key.pem
-            # chmod 600 ~/private_vm_key.pem
+          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.VM_SSH_USER }}@$VM_IP << 'EOF'
+          ssh manish_sharma@192.168.0.5
+            cd /home/${{ secrets.VM_SSH_USER }}/app || git clone https://github.com/Manish-auriga/backend.git app && cd app
+            git fetch --all
+            git checkout ${{ github.ref_name }}
+            git pull origin ${{ github.ref_name }}
+            echo "${{ secrets.APP_ENV_FILE }}" > .env
+            docker compose down
+            docker compose up -d --build
 
-            # SSH into Private VM
-            ssh $PRIVATE_VM_SSH_USER@$PRIVATE_VM_IP  bash -s <<'INNER_EOF'
-              set -e
-              if [ ! -d ~/app ]; then
-                git clone https://github.com/Manish-auriga/backend.git ~/app
-              fi
-              cd ~/app
-              git fetch --all
-              git checkout ${{ github.ref_name }}
-              git pull origin ${{ github.ref_name }}
-              echo "${{ secrets.APP_ENV_FILE }}" > .env
-              sudo docker compose down || true
-              sudo docker compose up -d --build
-            INNER_EOF
           EOF
+      
